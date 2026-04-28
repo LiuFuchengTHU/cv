@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 大模型横评（截至 2026-04-28）</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #151b2f;
+      --text: #e8ecff;
+      --muted: #a7b0d6;
+      --accent: #6ea8fe;
+      --good: #2ecc71;
+      --mid: #f1c40f;
+      --warn: #e67e22;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+      background: linear-gradient(160deg, #0a0f1e 0%, #111a33 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container {
+      width: min(1200px, 92vw);
+      margin: 2rem auto 4rem;
+    }
+    h1, h2 { line-height: 1.25; margin: 0 0 1rem; }
+    p { margin: 0.5rem 0; }
+    .hero {
+      background: rgba(21, 27, 47, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      margin-bottom: 1.5rem;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(110, 168, 254, 0.2);
+      color: #cfe0ff;
+      border: 1px solid rgba(110, 168, 254, 0.45);
+      border-radius: 999px;
+      padding: 0.2rem 0.7rem;
+      font-size: 0.85rem;
+      margin-right: 0.4rem;
+      margin-top: 0.35rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .card {
+      background: rgba(21, 27, 47, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1rem;
+    }
+    .metric {
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      background: rgba(21, 27, 47, 0.95);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+    th, td {
+      padding: 0.8rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.95rem;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: #1b2442;
+      color: #d9e5ff;
+      z-index: 1;
+    }
+    .score { font-weight: 700; }
+    .s-a { color: var(--good); }
+    .s-b { color: var(--mid); }
+    .s-c { color: var(--warn); }
+    .note {
+      margin-top: 1rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    footer {
+      margin-top: 1.8rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px dashed rgba(255,255,255,0.15);
+      padding-top: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <h1>AI 大模型横评（截至 2026 年 4 月 28 日）</h1>
+      <p>这是一份面向实际使用的综合对比页：覆盖通用推理、代码、数学、多模态、工具调用、成本与开放性。</p>
+      <div>
+        <span class="tag">时间边界：2026-04-28</span>
+        <span class="tag">场景导向</span>
+        <span class="tag">中文 + 英文</span>
+        <span class="tag">企业/开发者可用</span>
+      </div>
+      <p class="note">说明：不同厂商更新频率极高，本页采用「截至日期前公开可用能力」的归纳法，分数为横向体验分（A/B/C）而非官方榜单原始分。</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="metric">综合最强梯队（通用能力）</div>
+        <p>OpenAI o3 / GPT-4o、Google Gemini 2.5 Pro、Anthropic Claude 3.7 Sonnet、xAI Grok 3。</p>
+      </article>
+      <article class="card">
+        <div class="metric">性价比与开源生态</div>
+        <p>DeepSeek R1/V3、Qwen 2.5 系列、Llama 3.1 405B、Mistral Large 2 具有高可替代性。</p>
+      </article>
+      <article class="card">
+        <div class="metric">企业部署优先级</div>
+        <p>闭源云 API（稳定） + 开源自部署（成本可控）双轨并行，通常是 2026 年主流策略。</p>
+      </article>
+    </section>
+
+    <section class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>模型（截至 2026-04-28 前）</th>
+            <th>定位</th>
+            <th>推理/数学</th>
+            <th>代码</th>
+            <th>多模态</th>
+            <th>中文能力</th>
+            <th>工具调用</th>
+            <th>成本/可得性</th>
+            <th>典型适用场景</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>OpenAI o3</td>
+            <td>强推理旗舰</td>
+            <td class="score s-a">A</td>
+            <td class="score s-a">A</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-a">A</td>
+            <td class="score s-c">C（高价）</td>
+            <td>复杂推理、Agent工作流、科研/工程难题</td>
+          </tr>
+          <tr>
+            <td>OpenAI GPT-4o</td>
+            <td>全能多模态</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-a">A</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-b">B</td>
+            <td>客服助手、实时交互、视觉理解、语音场景</td>
+          </tr>
+          <tr>
+            <td>Google Gemini 2.5 Pro</td>
+            <td>长上下文 + 推理</td>
+            <td class="score s-a">A</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-b">B</td>
+            <td>超长文档分析、搜索增强、企业知识库问答</td>
+          </tr>
+          <tr>
+            <td>Anthropic Claude 3.7 Sonnet</td>
+            <td>代码与写作均衡</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-a">A</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-b">B</td>
+            <td>代码审查、文档重写、企业合规内容生成</td>
+          </tr>
+          <tr>
+            <td>xAI Grok 3</td>
+            <td>实时信息风格</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-b">B</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-b">B</td>
+            <td>实时话题、趋势分析、轻量开发协助</td>
+          </tr>
+          <tr>
+            <td>DeepSeek R1 / V3</td>
+            <td>高性价比推理</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-b">B</td>
+            <td class="score s-a">A</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-a">A（低成本）</td>
+            <td>大规模调用、私有化替代、中文业务系统</td>
+          </tr>
+          <tr>
+            <td>Qwen 2.5 系列（含 Max）</td>
+            <td>中文与工程友好</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-b">B</td>
+            <td class="score s-a">A</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-a">A</td>
+            <td>中文 Copilot、企业私域知识助手、成本优化</td>
+          </tr>
+          <tr>
+            <td>Llama 3.1 405B</td>
+            <td>开源超大基座</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-c">C+</td>
+            <td class="score s-b">B</td>
+            <td class="score s-b">B</td>
+            <td class="score s-a">A（可自部署）</td>
+            <td>可控微调、离线部署、主权数据场景</td>
+          </tr>
+          <tr>
+            <td>Mistral Large 2</td>
+            <td>欧洲系高效模型</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-b">B+</td>
+            <td class="score s-c">C+</td>
+            <td class="score s-c">C+</td>
+            <td class="score s-b">B</td>
+            <td class="score s-a">A-</td>
+            <td>轻量企业推理、欧洲合规优先部署</td>
+          </tr>
+          <tr>
+            <td>Cohere Command R+</td>
+            <td>RAG/企业检索</td>
+            <td class="score s-b">B</td>
+            <td class="score s-b">B</td>
+            <td class="score s-c">C</td>
+            <td class="score s-c">C+</td>
+            <td class="score s-a">A-</td>
+            <td class="score s-b">B+</td>
+            <td>RAG问答、工作流自动化、企业文档助手</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      <p><strong>结论建议（按场景选型）：</strong></p>
+      <p>1）追求天花板：o3 / Gemini 2.5 Pro / Claude 3.7 Sonnet。</p>
+      <p>2）追求多模态交互：GPT-4o 优先。</p>
+      <p>3）追求成本与可控：DeepSeek / Qwen / Llama 路线。</p>
+      <p>4）企业实践：核心任务用旗舰，长尾任务用高性价比模型混合编排。</p>
+    </footer>
+  </main>
+</body>
+</html>
