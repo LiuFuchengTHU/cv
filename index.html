@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 大模型横评（截至 2026-04-28）</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121a33;
+      --muted: #9fb0d6;
+      --text: #e8eeff;
+      --accent: #6ea8fe;
+      --good: #55d6be;
+      --warn: #ffd166;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, #1a2550 0%, var(--bg) 40%, #070b16 100%);
+      line-height: 1.6;
+    }
+    .container {
+      width: min(1100px, 92vw);
+      margin: 0 auto;
+      padding: 36px 0 64px;
+    }
+    .hero {
+      background: linear-gradient(120deg, rgba(110,168,254,.2), rgba(85,214,190,.15));
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      padding: 28px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 18px 48px rgba(0,0,0,.25);
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 42px); }
+    h2 { margin: 34px 0 14px; font-size: 24px; }
+    h3 { margin: 0 0 10px; font-size: 18px; }
+    p, li { color: var(--muted); }
+    .pill {
+      display: inline-block;
+      font-size: 12px;
+      color: #00122f;
+      background: linear-gradient(90deg, var(--accent), #91f9d8);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: rgba(18,26,51,.9);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .score { font-weight: 700; color: var(--good); }
+    .tag {
+      display: inline-block;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 8px;
+      padding: 2px 8px;
+      margin: 3px 5px 3px 0;
+      font-size: 12px;
+      color: #c9d6ff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(10,14,30,.65);
+    }
+    th, td {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      font-size: 14px;
+      vertical-align: top;
+    }
+    th { color: #cfe0ff; background: rgba(22,31,60,.9); }
+    tr:hover td { background: rgba(255,255,255,.03); }
+    .note {
+      margin-top: 16px;
+      border-left: 4px solid var(--warn);
+      padding: 10px 12px;
+      background: rgba(255, 209, 102, 0.08);
+      border-radius: 8px;
+      color: #ffe7ad;
+      font-size: 14px;
+    }
+    footer {
+      margin-top: 30px;
+      color: #8ea0c8;
+      font-size: 13px;
+    }
+    a { color: #b8d2ff; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <span class="pill">横评版本：2026-04-28 截止</span>
+      <h1>全球 AI 大模型横向评测（简版）</h1>
+      <p>
+        本页聚焦 <strong>通用对话 + 推理 + 编程 + 多模态 + 成本/部署</strong> 的综合能力。
+        由于“所有模型”在现实中数量极大且持续迭代，下文采用“主流头部与高活跃开源体系”进行横评，便于实际选型。
+      </p>
+    </section>
+
+    <h2>一图先看：模型梯队（综合主观评分）</h2>
+    <div class="grid">
+      <article class="card">
+        <h3>第一梯队（旗舰闭源）</h3>
+        <p class="score">综合：9.2 - 9.8 / 10</p>
+        <p>代表：OpenAI GPT-4.x / o 系列、Anthropic Claude 3.x+、Google Gemini 1.5/2.x。</p>
+        <span class="tag">强推理</span><span class="tag">强工具调用</span><span class="tag">多模态完整</span>
+      </article>
+      <article class="card">
+        <h3>第二梯队（高性价比闭源）</h3>
+        <p class="score">综合：8.5 - 9.1 / 10</p>
+        <p>代表：Mistral 商业 API、Cohere Command 系列、部分国产商业旗舰。</p>
+        <span class="tag">速度快</span><span class="tag">成本友好</span><span class="tag">企业可用</span>
+      </article>
+      <article class="card">
+        <h3>第三梯队（开源主力）</h3>
+        <p class="score">综合：7.8 - 9.0 / 10（分场景）</p>
+        <p>代表：Llama 3.x、Qwen 2.x、DeepSeek、Mixtral、Yi 等开源/开放权重体系。</p>
+        <span class="tag">可私有化</span><span class="tag">可微调</span><span class="tag">部署灵活</span>
+      </article>
+    </div>
+
+    <h2>核心横评维度</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>维度</th>
+          <th>看什么</th>
+          <th>头部表现（截至 2026-04-28）</th>
+          <th>典型短板</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>通用推理</td>
+          <td>复杂任务分解、数学/逻辑、长链路一致性</td>
+          <td>闭源旗舰领先，部分开源追平中短链路任务</td>
+          <td>超长推理易漂移，偶发幻觉</td>
+        </tr>
+        <tr>
+          <td>代码能力</td>
+          <td>多语言生成、修复、测试、重构</td>
+          <td>头部闭源 + 部分开源代码专精模型表现接近</td>
+          <td>大型工程上下文仍需工具链补强</td>
+        </tr>
+        <tr>
+          <td>多模态</td>
+          <td>图像理解、文档 OCR、语音输入输出、视频摘要</td>
+          <td>Gemini / GPT / Claude 生态完善，端到端能力强</td>
+          <td>行业文档格式复杂时准确率波动</td>
+        </tr>
+        <tr>
+          <td>Agent 工具调用</td>
+          <td>函数调用、检索、执行规划、错误恢复</td>
+          <td>闭源 API 一体化较成熟，开源依赖框架集成</td>
+          <td>链路变长后成本与时延上升明显</td>
+        </tr>
+        <tr>
+          <td>成本与部署</td>
+          <td>推理单价、吞吐、私有化可行性、合规</td>
+          <td>开源在私有化和可控性上优势明显</td>
+          <td>高质量开源仍需工程与硬件投入</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>按应用场景推荐</h2>
+    <div class="grid">
+      <article class="card">
+        <h3>企业知识库问答 / 客服自动化</h3>
+        <p>优先：具备稳定 RAG + 函数调用的闭源模型；强合规场景选开源私有化（Qwen/Llama/DeepSeek 系）。</p>
+      </article>
+      <article class="card">
+        <h3>代码助手 / 研发提效</h3>
+        <p>优先：代码专项模型或闭源旗舰；建议接入测试执行与静态检查，避免“一次生成即上线”。</p>
+      </article>
+      <article class="card">
+        <h3>多模态文档处理</h3>
+        <p>优先：原生支持图像+长文档+表格理解的模型；对票据/合同建议结合规则引擎二次校验。</p>
+      </article>
+      <article class="card">
+        <h3>本地部署 / 数据不出域</h3>
+        <p>优先：开源 7B~70B 分层部署，小模型高并发，大模型处理疑难任务。</p>
+      </article>
+    </div>
+
+    <div class="note">
+      说明：本页是面向落地选型的“横评摘要”，而非逐型号跑分榜。实际选型建议用你自己的数据集进行 A/B 测试（准确率、延迟、成本、稳定性四项一起看）。
+    </div>
+
+    <footer>
+      更新时间：2026-04-28（UTC）｜建议每 4~8 周更新一次横评结果。
+    </footer>
+  </main>
+</body>
+</html>
