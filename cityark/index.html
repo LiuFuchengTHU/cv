@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b0f14">
+<title>城市方舟 BLE 遥控器</title>
+<style>
+:root{--bg:#0b0f14;--panel:#141b24;--panel2:#1b2531;--text:#f5f7fa;--muted:#8fa0b3;--accent:#4f8cff;--danger:#d94b4b;--ok:#35c780}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overscroll-behavior:none}
+body{display:flex;justify-content:center}
+.app{width:min(100%,460px);padding:22px 18px 30px}
+.title{font-size:28px;font-weight:800;margin:4px 0}
+.sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+.card{background:var(--panel);border-radius:20px;padding:16px;margin-bottom:16px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.status-wrap{display:flex;align-items:center;gap:9px}
+.dot{width:10px;height:10px;border-radius:50%;background:#777}
+.dot.ok{background:var(--ok);box-shadow:0 0 14px rgba(53,199,128,.6)}
+#status{font-weight:700}
+#deviceName{font-size:13px;color:var(--muted);margin-top:7px}
+button{border:0;color:white;font:inherit;touch-action:none;user-select:none}
+.connect{min-width:108px;height:44px;padding:0 18px;border-radius:14px;background:var(--accent);font-weight:750;font-size:15px}
+.connect.disconnect{background:#3a4654}
+.command{text-align:center;font-size:14px;color:var(--muted);margin:3px 0 10px}
+#commandText{color:var(--text);font-weight:800;font-size:18px;margin-left:5px}
+.pad{display:grid;grid-template-columns:repeat(3,92px);grid-template-rows:repeat(3,92px);gap:14px;justify-content:center;margin:8px auto 18px}
+.control{width:92px;height:92px;border-radius:24px;background:var(--panel2);font-size:42px;font-weight:800;box-shadow:0 7px 18px rgba(0,0,0,.25);transition:transform .05s,background .05s}
+.control:active,.control.active{transform:scale(.95);background:#2b3a4c}
+.up{grid-column:2;grid-row:1}.left{grid-column:1;grid-row:2}.stop{grid-column:2;grid-row:2;background:var(--danger);font-size:18px}.stop:active,.stop.active{background:#b53838}.right{grid-column:3;grid-row:2}.down{grid-column:2;grid-row:3}
+.tip{font-size:13px;line-height:1.65;color:var(--muted)}
+.rx{margin-top:10px;padding:10px 12px;border-radius:12px;background:#0d131a;color:#b9c7d6;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;min-height:40px;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="title">城市方舟</div>
+  <div class="sub">ESP32-C3 · BLE 双电机遥控</div>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <div class="status-wrap"><span id="dot" class="dot"></span><span id="status">未连接</span></div>
+        <div id="deviceName">目标：CityArk_Boat</div>
+      </div>
+      <button id="connectBtn" class="connect">连接蓝牙</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="command">当前命令 <span id="commandText">STOP</span></div>
+    <div class="pad">
+      <button class="control up" data-cmd="F">↑</button>
+      <button class="control left" data-cmd="L">←</button>
+      <button class="control stop" data-cmd="S">STOP</button>
+      <button class="control right" data-cmd="R">→</button>
+      <button class="control down" data-cmd="B">↓</button>
+    </div>
+    <div class="tip">按住方向键持续运动，松手立即发送 STOP。页面每 100 ms 重发一次运动命令。</div>
+    <div id="rxLog" class="rx">等待蓝牙连接…</div>
+  </div>
+</div>
+
+<script>
+const DEVICE_NAME="CityArk_Boat";
+const SERVICE_UUID="6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const RX_UUID="6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+const TX_UUID="6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+
+let device=null, server=null, rxChar=null, txChar=null;
+let holdTimer=null, currentCmd=null, writeBusy=false;
+
+const $=id=>document.getElementById(id);
+const statusEl=$("status"), dotEl=$("dot"), connectBtn=$("connectBtn"), commandText=$("commandText"), rxLog=$("rxLog");
+
+function setStatus(text,connected=false){
+  statusEl.textContent=text;
+  dotEl.classList.toggle("ok",connected);
+  connectBtn.textContent=connected?"断开":"连接蓝牙";
+  connectBtn.classList.toggle("disconnect",connected);
+}
+function log(text){rxLog.textContent=text;}
+
+async function connectBLE(){
+  if(!navigator.bluetooth){
+    alert("当前浏览器不支持 Web Bluetooth。Android 请使用 Chrome 或 Edge，并通过 HTTPS 页面打开。");
+    return;
+  }
+  try{
+    setStatus("正在选择设备…",false);
+    device=await navigator.bluetooth.requestDevice({
+      filters:[{name:DEVICE_NAME}],
+      optionalServices:[SERVICE_UUID]
+    });
+    device.addEventListener("gattserverdisconnected",onDisconnected);
+    setStatus("正在连接…",false);
+    server=await device.gatt.connect();
+    const service=await server.getPrimaryService(SERVICE_UUID);
+    rxChar=await service.getCharacteristic(RX_UUID);
+
+    try{
+      txChar=await service.getCharacteristic(TX_UUID);
+      await txChar.startNotifications();
+      txChar.addEventListener("characteristicvaluechanged",onNotify);
+    }catch(e){txChar=null;}
+
+    $("deviceName").textContent="已连接："+(device.name||DEVICE_NAME);
+    setStatus("已连接",true);
+    log("BLE 已连接，可以控制。");
+    await sendCommand("S");
+  }catch(err){
+    console.error(err);
+    setStatus("连接失败",false);
+    log("连接失败："+(err.message||err));
+  }
+}
+
+function disconnectBLE(){
+  stopHold();
+  if(device&&device.gatt&&device.gatt.connected) device.gatt.disconnect();
+  else onDisconnected();
+}
+function onDisconnected(){
+  stopHold(false);
+  rxChar=null;txChar=null;server=null;
+  setStatus("未连接",false);
+  $("deviceName").textContent="目标："+DEVICE_NAME;
+  log("蓝牙已断开。");
+}
+function onNotify(event){
+  const text=new TextDecoder().decode(event.target.value);
+  log("ESP32："+text);
+}
+
+async function sendCommand(cmd){
+  if(!rxChar||writeBusy) return false;
+  writeBusy=true;
+  try{
+    const data=new TextEncoder().encode(cmd);
+    if(typeof rxChar.writeValueWithoutResponse==="function") await rxChar.writeValueWithoutResponse(data);
+    else await rxChar.writeValue(data);
+
+    commandText.textContent=cmd==="F"?"前进":cmd==="B"?"后退":cmd==="L"?"左转":cmd==="R"?"右转":"STOP";
+    return true;
+  }catch(err){
+    console.error(err);
+    log("发送失败："+(err.message||err));
+    return false;
+  }finally{writeBusy=false;}
+}
+
+function startHold(cmd,button){
+  if(!rxChar){log("请先连接 CityArk_Boat");return;}
+  stopHold(false);
+  currentCmd=cmd;
+  button.classList.add("active");
+  if(navigator.vibrate) navigator.vibrate(20);
+  sendCommand(cmd);
+  holdTimer=setInterval(()=>{if(currentCmd) sendCommand(currentCmd);},100);
+}
+function stopHold(sendStop=true){
+  currentCmd=null;
+  if(holdTimer){clearInterval(holdTimer);holdTimer=null;}
+  document.querySelectorAll(".control.active").forEach(el=>el.classList.remove("active"));
+  if(sendStop&&rxChar) sendCommand("S");
+  else commandText.textContent="STOP";
+}
+
+connectBtn.addEventListener("click",()=>{
+  if(device&&device.gatt&&device.gatt.connected) disconnectBLE();
+  else connectBLE();
+});
+
+document.querySelectorAll(".control").forEach(button=>{
+  const cmd=button.dataset.cmd;
+  if(cmd==="S"){
+    button.addEventListener("pointerdown",e=>{
+      e.preventDefault();stopHold(true);button.classList.add("active");
+      setTimeout(()=>button.classList.remove("active"),120);
+    });
+    return;
+  }
+  button.addEventListener("pointerdown",e=>{
+    e.preventDefault();
+    try{button.setPointerCapture(e.pointerId);}catch(_){}
+    startHold(cmd,button);
+  });
+  button.addEventListener("pointerup",e=>{e.preventDefault();stopHold(true);});
+  button.addEventListener("pointercancel",()=>stopHold(true));
+  button.addEventListener("lostpointercapture",()=>stopHold(true));
+});
+
+window.addEventListener("blur",()=>stopHold(true));
+document.addEventListener("visibilitychange",()=>{if(document.hidden) stopHold(true);});
+setStatus("未连接",false);
+</script>
+</body>
+</html>
